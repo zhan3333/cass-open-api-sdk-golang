@@ -1,18 +1,20 @@
-package Cass
+package cass
 
 import (
-	"cass_open_api_sdk_golang/Singer"
+	"cass_open_api_sdk_golang/signer"
 	"crypto"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"reflect"
+	"sort"
 	"strings"
 	"time"
 )
 
 type Request struct {
-	signer   Singer.Signer
+	signer   signer.Signer
 	BizParam map[string]interface{}
 	Sign     string `json:"sign"`
 	Params   *params
@@ -33,7 +35,7 @@ func NewRequest(privateKey string, APPID string, format string, charset string, 
 		BizParam: "",
 		Sign:     "",
 	}
-	request.signer, err = Singer.NewSign(privateKey)
+	request.signer, err = signer.NewSign(privateKey)
 	if err != nil {
 		return request, err
 	}
@@ -97,24 +99,42 @@ func (request *Request) makeSign() error {
 	var err error
 	// 将 bizParam 转为json, 其中的中文不要转为 unicode 编码, 保持中文字符
 	waitSignParams, err := request.Params.toMap()
+	fmt.Println(reflect.TypeOf(waitSignParams["bizParam"]))
 	if err != nil {
 		return err
 	}
 
 	// 过滤 Request 中的空字符: '', null, '[]', '{}'
 	for s, v := range waitSignParams {
-		if v == "" || v == "{}" || v == "[]" || v == nil || v == "null" {
+		if v == "" || v == "{}" || v == "[]" || v == nil {
 			delete(waitSignParams, s)
 		}
 	}
 
-	fmt.Printf("wait sign params: %s \n", waitSignParams)
+	fmt.Printf("wait sign params: %v \n", waitSignParams)
 
 	// 将 key 按照升序排序
 
+	sorted_keys := make([]string, 0)
+	for k := range waitSignParams {
+		sorted_keys = append(sorted_keys, k)
+	}
+	sort.Strings(sorted_keys)
+
+	signMapParams := make(map[string]interface{}, 0) //加密使用
+	for _, k := range sorted_keys {
+		v := waitSignParams[k]
+		if k != "" && v != "" {
+			if v == "" || v == "{}" || v == "[]" {
+				continue
+			}
+			signMapParams[k] = v
+		}
+	}
+
 	// 将 request 转换为 json
 
-	jsonBytes, err := json.Marshal(waitSignParams)
+	jsonBytes, err := json.Marshal(signMapParams)
 	if err != nil {
 		return err
 	}
@@ -123,6 +143,8 @@ func (request *Request) makeSign() error {
 
 	jsonStr := strings.ReplaceAll(string(jsonBytes), " ", "")
 
+	fmt.Printf("json sign params: %s \n", jsonStr)
+
 	// 将 request json str 进行 urlencode 编码, 产生待签名字符串
 
 	urlEncodeStr := url.QueryEscape(jsonStr)
@@ -130,6 +152,10 @@ func (request *Request) makeSign() error {
 	// 通过字符串生成签名
 	signBytes, err := request.signer.Sign([]byte(urlEncodeStr), crypto.SHA256)
 	sign := base64.StdEncoding.EncodeToString(signBytes)
+
+	// 对 sign 进行 urlencode 处理, 防止 base64 中的字符串在 url 无法正常作为参数
+
+	sign = url.QueryEscape(sign)
 	fmt.Printf("sign string: %s \n", sign)
 	if err != nil {
 		return err

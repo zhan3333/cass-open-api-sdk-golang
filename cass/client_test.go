@@ -1,7 +1,7 @@
-package Cass_test
+package cass_test
 
 import (
-	"cass_open_api_sdk_golang/Cass"
+	"cass_open_api_sdk_golang/cass"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
@@ -16,12 +16,12 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	godotenv.Load("../.env")
+	_ = godotenv.Load("../.env")
 	m.Run()
 }
 
 func TestNewRequest(t *testing.T) {
-	request, err := Cass.NewRequest(
+	request, err := cass.NewRequest(
 		os.Getenv("PRIVATE_KEY_STR"),
 		os.Getenv("APPID"),
 		"JSON",
@@ -54,7 +54,7 @@ func TestNewRequest(t *testing.T) {
 }
 
 func TestOneBankPay(t *testing.T) {
-	request, err := Cass.NewRequest(
+	request, err := cass.NewRequest(
 		os.Getenv("PRIVATE_KEY_STR"),
 		os.Getenv("APPID"),
 		"JSON",

@@ -1,4 +1,4 @@
-package Singer
+package signer
 
 import (
 	"crypto"

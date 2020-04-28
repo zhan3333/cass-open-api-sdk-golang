@@ -1,7 +1,7 @@
-package Singer_test
+package signer_test
 
 import (
-	"cass_open_api_sdk_golang/Singer"
+	"cass_open_api_sdk_golang/signer"
 	"crypto"
 	"crypto/rsa"
 	"crypto/x509"
@@ -44,12 +44,12 @@ func TestReadPublicKey(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
-	_, err := Singer.New(os.Getenv("PRIVATE_KEY_STR"), os.Getenv("PUBLIC_KEY_STR"))
+	_, err := signer.New(os.Getenv("PRIVATE_KEY_STR"), os.Getenv("PUBLIC_KEY_STR"))
 	assert.Nil(t, err)
 }
 
 func TestRsaClient_Sign(t *testing.T) {
-	client, _ := Singer.New(os.Getenv("PRIVATE_KEY_STR"), os.Getenv("PUBLIC_KEY_STR"))
+	client, _ := signer.New(os.Getenv("PRIVATE_KEY_STR"), os.Getenv("PUBLIC_KEY_STR"))
 	signBytes, err := client.Sign([]byte("123456"), crypto.SHA256)
 	assert.Nil(t, err)
 	assert.NotNil(t, signBytes)
