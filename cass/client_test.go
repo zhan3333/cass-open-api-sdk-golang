@@ -1,6 +1,7 @@
 package cass_test
 
 import (
+	"bytes"
 	"cass_open_api_sdk_golang/cass"
 	"encoding/json"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"testing"
@@ -104,4 +106,21 @@ func TestOneBankPay(t *testing.T) {
 	}
 	assert.Nil(t, err)
 	fmt.Printf("response: %s \n", response)
+}
+
+func TestUrlQueryEscape(t *testing.T) {
+	s := url.QueryEscape("http://www.baidu.com")
+	t.Log(s)
+	bites, _ := json.Marshal(map[string]string{
+		"url": "http://www.baidu.com?name=zhan&age=22",
+	})
+	t.Logf("%s", bites)
+
+	bf := bytes.NewBuffer([]byte{})
+	jsonEncoder := json.NewEncoder(bf)
+	jsonEncoder.SetEscapeHTML(false)
+	_ = jsonEncoder.Encode(map[string]string{
+		"url": "http://www.baidu.com?name=zhan&age=22",
+	})
+	t.Log(bf.String())
 }

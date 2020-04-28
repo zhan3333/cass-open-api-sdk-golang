@@ -1,6 +1,7 @@
 package cass
 
 import (
+	"bytes"
 	"cass_open_api_sdk_golang/signer"
 	"crypto"
 	"encoding/base64"
@@ -73,7 +74,7 @@ func (params params) BuildQuery() (string, error) {
 	}
 	if len(waitBuildQueryParams) != 0 {
 		for key, val := range waitBuildQueryParams {
-			str.WriteString(fmt.Sprintf("%s=%s&", key, val))
+			str.WriteString(fmt.Sprintf("%s=%s&", key, url.QueryEscape(fmt.Sprintf("%s", val))))
 		}
 	}
 	return strings.TrimRight(str.String(), "&"), nil
@@ -133,15 +134,22 @@ func (request *Request) makeSign() error {
 	}
 
 	// 将 request 转换为 json
-
-	jsonBytes, err := json.Marshal(signMapParams)
+	bf := bytes.NewBuffer([]byte{})
+	jsonEncoder := json.NewEncoder(bf)
+	jsonEncoder.SetEscapeHTML(false)
+	err = jsonEncoder.Encode(signMapParams)
 	if err != nil {
 		return err
 	}
+	jsonStr := bf.String()
+	//jsonStr, err := json.Marshal(signMapParams)
 
 	// 将 request json str 中的空格 (ASCII 码空格) 去掉
 
-	jsonStr := strings.ReplaceAll(string(jsonBytes), " ", "")
+	jsonStr = strings.ReplaceAll(jsonStr, " ", "")
+	jsonStr = strings.ReplaceAll(jsonStr, "\n", "")
+	jsonStr = strings.ReplaceAll(jsonStr, "http://", `http:\/\/`)
+	jsonStr = strings.ReplaceAll(jsonStr, "https://", `https:\/\/`)
 
 	fmt.Printf("json sign params: %s \n", jsonStr)
 
@@ -155,7 +163,7 @@ func (request *Request) makeSign() error {
 
 	// 对 sign 进行 urlencode 处理, 防止 base64 中的字符串在 url 无法正常作为参数
 
-	sign = url.QueryEscape(sign)
+	//sign = url.QueryEscape(sign)
 	fmt.Printf("sign string: %s \n", sign)
 	if err != nil {
 		return err
