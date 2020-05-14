@@ -45,6 +45,17 @@ func NewSign(privateKey string) (Signer, error) {
 	}, nil
 }
 
+//func NewVerify(publicKey string) (Signer, error) {
+//	pubKey, err := readPublicKey(publicKey)
+//	if err != nil {
+//		return nil, err
+//	}
+//	return &rsaClient{
+//		PrivateKey: nil,
+//		PublicKey:  pubKey,
+//	}, nil
+//}
+
 func New(privateKey, publicKey string) (Signer, error) {
 	priKey, err := readPrivateKey(privateKey)
 	if err != nil {
@@ -60,7 +71,7 @@ func New(privateKey, publicKey string) (Signer, error) {
 	}, nil
 }
 
-// 读取私钥对象
+// 读取私钥对象 (pkcs8/pkcs1)
 func readPrivateKey(key string) (*rsa.PrivateKey, error) {
 	bytes, err := base64.StdEncoding.DecodeString(key)
 	if err != nil {
@@ -68,6 +79,12 @@ func readPrivateKey(key string) (*rsa.PrivateKey, error) {
 	}
 	var privateKey *rsa.PrivateKey
 	prkI, err := x509.ParsePKCS8PrivateKey(bytes)
+	if err != nil {
+		prkI, err = x509.ParsePKCS1PrivateKey(bytes)
+		if err != nil {
+			return nil, err
+		}
+	}
 	privateKey = prkI.(*rsa.PrivateKey)
 	return privateKey, nil
 }
@@ -81,6 +98,9 @@ func readPublicKey(key string) (*rsa.PublicKey, error) {
 	}
 	var publicKey *rsa.PublicKey
 	pubKI, err := x509.ParsePKIXPublicKey(bytes)
+	if err != nil {
+		return nil, err
+	}
 	publicKey = pubKI.(*rsa.PublicKey)
 	return publicKey, nil
 }

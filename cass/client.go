@@ -87,7 +87,7 @@ func (request *Request) BuildParams() error {
 		return err
 	}
 	request.Params.BizParam = string(bizParamBytes)
-	request.Params.Datetime = time.Now().Format("2006-01-2 15:04:05")
+	request.Params.Datetime = time.Now().Format("2006-01-02 15:04:05")
 
 	err = request.makeSign()
 	if err != nil {
@@ -146,10 +146,14 @@ func (request *Request) makeSign() error {
 
 	// 将 request json str 中的空格 (ASCII 码空格) 去掉
 
+	// 服务端的 json_encode 会将 // 转义为 \/\/, 但是 golang 中不会转义
+	fmt.Printf("JSON str before : %s \n", jsonStr)
 	jsonStr = strings.ReplaceAll(jsonStr, " ", "")
 	jsonStr = strings.ReplaceAll(jsonStr, "\n", "")
-	jsonStr = strings.ReplaceAll(jsonStr, "http://", `http:\/\/`)
-	jsonStr = strings.ReplaceAll(jsonStr, "https://", `https:\/\/`)
+	//jsonStr = strings.ReplaceAll(jsonStr, "http://", `http:\/\/`)
+	//jsonStr = strings.ReplaceAll(jsonStr, "https://", `https:\/\/`)
+	jsonStr = strings.ReplaceAll(jsonStr, "/", `\/`)
+	fmt.Printf("JSON str after : %s \n", jsonStr)
 
 	fmt.Printf("json sign params: %s \n", jsonStr)
 

@@ -59,6 +59,18 @@ func TestRsaClient_Sign(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+func TestRsaClient_Sign2(t *testing.T) {
+	client, err := signer.New(os.Getenv("VZHUO_PRIVATE_KEY_STR"), os.Getenv("VZHUO_PUBLIC_KEY_STR"))
+	assert.Nil(t, err)
+	signBytes, err := client.Sign([]byte("123456"), crypto.SHA256)
+	assert.Nil(t, err)
+	assert.NotNil(t, signBytes)
+	err = client.Verify([]byte("123456"), signBytes, crypto.SHA256)
+	assert.Nil(t, err)
+	err = client.Verify([]byte("654321"), signBytes, crypto.SHA256)
+	assert.NotNil(t, err)
+}
+
 func TestJson(t *testing.T) {
 	var data = map[string]interface{}{
 		"name": "詹光",

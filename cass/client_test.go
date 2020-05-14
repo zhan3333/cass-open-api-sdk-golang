@@ -75,7 +75,7 @@ func TestOneBankPay(t *testing.T) {
 				"receiptFANO":      "13517210601",
 				"payeeAccount":     "詹光",
 				"requestPayAmount": "0.01",
-				"notifyUrl":        "http://www.baidu.com",
+				"notifyUrl":        "http://www.baidu.com/a/b?a=b",
 			},
 		},
 	}
